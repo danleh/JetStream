@@ -1063,6 +1063,8 @@ class AsyncBenchmark extends DefaultBenchmark {
         return `
         async function doRun() {
             let __benchmark = new Benchmark();
+            if (__benchmark.init)
+                await __benchmark.init();
             let results = [];
             let benchmarkName = "${this.name}";
 
@@ -2012,6 +2014,23 @@ const BENCHMARKS = [
         },
         iterations: 30,
         worstCaseCount: 2,
+        testGroup: WasmGroup
+    }),
+    new WasmEMCCBenchmark({
+        name: "transformersjs-wasm",
+        files: [
+            "./transformersjs/build/text-encoding/encoding-indexes.js",
+            "./transformersjs/build/text-encoding/encoding.js",
+            "./transformersjs/benchmark.js",
+        ],
+        preload: {
+            wasmBinary: "./transformersjs/build/ort-wasm-simd-threaded.wasm",
+            modelWeights: "./transformersjs/build/models/Xenova/distilbert-base-uncased-finetuned-sst-2-english/onnx/model_uint8.onnx",
+            modelConfig: "./transformersjs/build/models/Xenova/distilbert-base-uncased-finetuned-sst-2-english/config.json",
+            modelTokenizer: "./transformersjs/build/models/Xenova/distilbert-base-uncased-finetuned-sst-2-english/tokenizer.json",
+            modelTokenizerConfig: "./transformersjs/build/models/Xenova/distilbert-base-uncased-finetuned-sst-2-english/tokenizer_config.json",
+        },
+        iterations: 50,
         testGroup: WasmGroup
     }),
     new WasmLegacyBenchmark({
