@@ -2016,6 +2016,7 @@ const BENCHMARKS = [
         worstCaseCount: 2,
         testGroup: WasmGroup
     }),
+    // TODO: Change this to AsyncBenchmark, we don't actually need the Emscripten magic.
     new WasmEMCCBenchmark({
         name: "transformersjs-bert-wasm",
         files: [
