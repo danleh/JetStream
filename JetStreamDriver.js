@@ -2006,6 +2006,7 @@ const BENCHMARKS = [
     new WasmEMCCBenchmark({
         name: "sqlite3-wasm",
         files: [
+            "./polyfills/fast-text-encoding-1.0.3/text.js",
             "./sqlite3/benchmark.js",
             "./sqlite3/build/jswasm/speedtest1.js",
         ],
