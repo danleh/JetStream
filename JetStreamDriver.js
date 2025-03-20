@@ -1097,7 +1097,7 @@ class AsyncBenchmark extends DefaultBenchmark {
 class WasmEMCCBenchmark extends AsyncBenchmark {
     get prerunCode() {
         let str = `
-            let verbose = false;
+            let verbose = true;
 
             let globalObject = this;
 
@@ -2027,6 +2027,20 @@ const BENCHMARKS = [
         },
         iterations: 15,
         worstCaseCount: 2,
+        testGroup: WasmGroup,
+    }),
+    new WasmEMCCBenchmark({
+        name: "Kotlin-compose-wasm",
+        files: [
+            "./Kotlin-compose/benchmark.js",
+        ],
+        preload: {
+            wasmBinary: "./Kotlin-compose/build/compose-benchmarks-benchmarks-wasm-js.wasm",
+            wasmSkikoBinary: "./Kotlin-compose/build/skiko.wasm",
+            inputImage: "./Kotlin-compose/build/drawable/img.png"
+        },
+        iterations: 3,
+        worstCaseCount: 1,
         testGroup: WasmGroup,
     }),
     new WasmLegacyBenchmark({
