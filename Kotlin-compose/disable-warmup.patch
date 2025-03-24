@@ -1,0 +1,13 @@
+diff --git a/benchmarks/multiplatform/benchmarks/src/commonMain/kotlin/Benchmarks.kt b/usr/local/google/home/dlehmann/experiments/2025-02-27-kotlin-compose-d8-bench/compose-multiplatform/benchmarks/multiplatform/benchmarks/src/commonMain/kotlin/Benchmarks.kt
+index be059d711c..c073053746 100644
+--- a/benchmarks/multiplatform/benchmarks/src/commonMain/kotlin/Benchmarks.kt
++++ b/benchmarks/multiplatform/benchmarks/src/commonMain/kotlin/Benchmarks.kt
+@@ -144,7 +144,7 @@ suspend fun runBenchmark(
+     targetFps: Int,
+     frameCount: Int,
+     graphicsContext: GraphicsContext?,
+-    warmupCount: Int = 100,
++    warmupCount: Int = 0,
+     content: @Composable () -> Unit
+ ) {
+     if (Args.isBenchmarkEnabled(name)) {

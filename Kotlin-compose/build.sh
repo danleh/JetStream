@@ -20,6 +20,7 @@ echo -e "Built on $(date --rfc-3339=seconds)" | tee "$BUILD_LOG"
 # git clone -b ok/benchmarks_d8 https://github.com/JetBrains/compose-multiplatform.git |& tee -a "$BUILD_LOG"
 pushd compose-multiplatform/
 git log -1 --oneline | tee -a "$BUILD_LOG"
+git apply ../disable-warmup.patch | tee -a "$BUILD_LOG"
 pushd benchmarks/multiplatform
 ./gradlew :benchmarks:wasmJsProductionExecutableCompileSync
 BUILD_SRC_DIR="compose-multiplatform/benchmarks/multiplatform/build/js/packages/compose-benchmarks-benchmarks-wasm-js/kotlin/"
@@ -29,7 +30,7 @@ popd
 echo "Copying generated files into build/" | tee -a "$BUILD_LOG"
 mkdir -p build/drawable/ | tee -a "$BUILD_LOG"
 cp $BUILD_SRC_DIR/compose-benchmarks-benchmarks-wasm-js.{wasm,uninstantiated.mjs} build/ | tee -a "$BUILD_LOG"
-git apply print.patch | tee -a "$BUILD_LOG"
+git apply hook-print.patch | tee -a "$BUILD_LOG"
 cp $BUILD_SRC_DIR/skiko.{wasm,mjs} build/ | tee -a "$BUILD_LOG"
 cp $BUILD_SRC_DIR/drawable/img.png build/drawable/ | tee -a "$BUILD_LOG"
 

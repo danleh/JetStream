@@ -106,13 +106,12 @@ class Benchmark {
 
     // A factor of 100 is what the Kotlin benchmark runs by default. But since
     // we run multiple iterations that take care of the noise, we reduce it.
-    // FIXME: This is too low, but it seems there is a huge constant factor somewhere.
-    const workSizeFactor = 1;
-    await this.wasmInstanceExports.customLaunch("AnimatedVisibility", 100 * workSizeFactor);
-    await this.wasmInstanceExports.customLaunch("LazyGrid", 2 * workSizeFactor);
-    await this.wasmInstanceExports.customLaunch("LazyGrid-ItemLaunchedEffect", 2 * workSizeFactor);
-    await this.wasmInstanceExports.customLaunch("LazyGrid-SmoothScroll", 5 * workSizeFactor);
-    await this.wasmInstanceExports.customLaunch("LazyGrid-SmoothScroll-ItemLaunchedEffect", 5 * workSizeFactor);
-    await this.wasmInstanceExports.customLaunch("VisualEffects", 10 * workSizeFactor);
+    const workSizeFactor = 2;
+    await this.wasmInstanceExports.customLaunch("AnimatedVisibility", 10 * workSizeFactor);
+    await this.wasmInstanceExports.customLaunch("LazyGrid", 1 * workSizeFactor);
+    await this.wasmInstanceExports.customLaunch("LazyGrid-ItemLaunchedEffect", 1 * workSizeFactor);
+    await this.wasmInstanceExports.customLaunch("LazyGrid-SmoothScroll", 10 * workSizeFactor);
+    await this.wasmInstanceExports.customLaunch("LazyGrid-SmoothScroll-ItemLaunchedEffect", 10 * workSizeFactor);
+    await this.wasmInstanceExports.customLaunch("VisualEffects", 1 * workSizeFactor);
   }
 }
