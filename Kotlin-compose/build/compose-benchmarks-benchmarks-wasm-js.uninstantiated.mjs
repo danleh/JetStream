@@ -254,7 +254,7 @@ export async function instantiate(imports={}, runInitializer=true) {
         'org.jetbrains.compose.resources.isInTestEnvironment' : () => window.composeResourcesTesting == true,
         'isSpecialJetstream3Build' : () => isWasmBuildForJetstream3 == true,
         'shouldSkipFunMain' : () => typeof skipFunMain !== 'undefined',
-        'runGC' : () => { (typeof gc === 'function') ? gc() : ((isD8 != true) ? console.log('Manual GC is not available. Ensure that the browser was started with the appropriate flags.') : 0) }
+        'runGC' : () => { }
     }
     
     // Placed here to give access to it from externals (js_code)

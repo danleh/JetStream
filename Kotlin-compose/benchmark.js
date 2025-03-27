@@ -23,6 +23,11 @@ class URL {
 }
 globalThis.URL = URL;
 
+// FIXME: Shall we always polyfill `fetch` and `instantiateStreaming` for
+// consistency between shell and browser? At the expense of not testing streaming
+// instantiation?
+// If we don't polyfill, at the least we have to rewrite some paths (e.g., 'skiko.wasm')
+// and it would introduce network latency into the measurement...
 let preload = {};
 globalThis.fetch = async function(url) {
   // DEBUG
@@ -43,6 +48,15 @@ globalThis.fetch = async function(url) {
   };
 };
 
+// FIXME: See above.
+// if (typeof WebAssembly.instantiateStreaming !== 'function') {
+  globalThis.WebAssembly.instantiateStreaming = async function(m,i) {
+    // DEBUG
+    // console.log('instantiateStreaming',m,i);
+    return WebAssembly.instantiate((await m).arrayBuffer(),i);
+  };
+// }
+
 // Provide `setTimeout` polyfill for Kotlin coroutines and Skiko.
 // SpiderMonkey shell doesn't have a `setTimeout` at all.
 // d8's `setTimeout` doesn't actually wait before invoking the callback, i.e.,
@@ -60,19 +74,8 @@ if (!isInBrowser) {
   }
 }
 
-if (typeof WebAssembly.instantiateStreaming === 'function') {
-  globalThis.WebAssembly.instantiateStreaming = async function(m,i) {
-    // DEBUG
-    // console.log('instantiateStreaming',m,i);
-    return WebAssembly.instantiate((await m).arrayBuffer(),i);
-  };
-}
-
 // Don't automatically run the main function on instantiation.
 globalThis.skipFunMain = true;
-// Determines whether to run GC after each subitem, if `gc()` is available.
-// (Which it is not in browsers.)
-globalThis.isD8 = false;
 // Prevent this from being detected as a shell environment, so that we use the
 // same code paths as in the browser.
 // See `compose-benchmarks-benchmarks-wasm-js.uninstantiated.mjs`.
@@ -138,11 +141,12 @@ class Benchmark {
     // We render/animate/process fewer frames here than in the upstream benchmark,
     // since we run multiple iterations in the JetStream driver (to measure first, worst, and
     // average runtime) and don't want the overall workload to take too long.
-    await this.wasmInstanceExports.customLaunch("AnimatedVisibility", 1000);
-    await this.wasmInstanceExports.customLaunch("LazyGrid", 10);
-    await this.wasmInstanceExports.customLaunch("LazyGrid-ItemLaunchedEffect", 10);
-    await this.wasmInstanceExports.customLaunch("LazyGrid-SmoothScroll", 100);
-    await this.wasmInstanceExports.customLaunch("LazyGrid-SmoothScroll-ItemLaunchedEffect", 100);
-    await this.wasmInstanceExports.customLaunch("VisualEffects", 10);
+    const frameCountFactor = 5;
+    await this.wasmInstanceExports.customLaunch("AnimatedVisibility", 100 * frameCountFactor);
+    await this.wasmInstanceExports.customLaunch("LazyGrid", 1 * frameCountFactor);
+    await this.wasmInstanceExports.customLaunch("LazyGrid-ItemLaunchedEffect", 1 * frameCountFactor);
+    await this.wasmInstanceExports.customLaunch("LazyGrid-SmoothScroll", 10 * frameCountFactor);
+    await this.wasmInstanceExports.customLaunch("LazyGrid-SmoothScroll-ItemLaunchedEffect", 10 * frameCountFactor);
+    await this.wasmInstanceExports.customLaunch("VisualEffects", 1 * frameCountFactor);
   }
 }

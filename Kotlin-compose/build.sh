@@ -30,7 +30,7 @@ popd
 echo "Copying generated files into build/" | tee -a "$BUILD_LOG"
 mkdir -p build/drawable/ | tee -a "$BUILD_LOG"
 cp $BUILD_SRC_DIR/compose-benchmarks-benchmarks-wasm-js.{wasm,uninstantiated.mjs} build/ | tee -a "$BUILD_LOG"
-git apply hook-print.patch | tee -a "$BUILD_LOG"
+git apply hook-print-disable-gc.patch | tee -a "$BUILD_LOG"
 cp $BUILD_SRC_DIR/skiko.{wasm,mjs} build/ | tee -a "$BUILD_LOG"
 git apply disable-skiko-instantiate.patch | tee -a "$BUILD_LOG"
 cp $BUILD_SRC_DIR/drawable/img.png build/drawable/ | tee -a "$BUILD_LOG"

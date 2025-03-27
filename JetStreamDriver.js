@@ -2039,7 +2039,7 @@ const BENCHMARKS = [
             wasmSkikoBinary: "./Kotlin-compose/build/skiko.wasm",
             inputImage: "./Kotlin-compose/build/drawable/img.png"
         },
-        iterations: 10,
+        iterations: 15,
         worstCaseCount: 2,
         testGroup: WasmGroup,
     }),
