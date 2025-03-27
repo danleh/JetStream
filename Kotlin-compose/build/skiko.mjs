@@ -8319,6 +8319,7 @@ export const {
     _releaseLocalCallbackScope
 } = SkikoCallbacks;
 
+/*
 export const loadedWasm = await loadSkikoWASM();
 
 export const { GL } = loadedWasm;
@@ -9286,3 +9287,4 @@ export const {
     skia_memSetDouble,
     skia_memGetDouble,
 } = loadedWasm.wasmExports;
+*/
