@@ -2489,8 +2489,8 @@ let BENCHMARKS = [
             inputFontItalic: "./Kotlin-compose/build/jetbrainsmono_italic.ttf",
             inputFontRegular: "./Kotlin-compose/build/jetbrainsmono_regular.ttf"
         },
-        iterations: 15,
-        worstCaseCount: 2,
+        iterations: 5,
+        worstCaseCount: 1,
         tags: ["default", "Wasm"],
     }),
     new AsyncBenchmark({
