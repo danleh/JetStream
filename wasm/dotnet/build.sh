@@ -27,6 +27,8 @@ printf '%s\n' 'import.meta.url ??= "";' | cat - ./src/dotnet/bin/Release/net9.0/
 echo "Copying symbol maps..." | tee -a "$BUILD_LOG"
 cp ./src/dotnet/obj/Release/net9.0/wasm/for-publish/dotnet.native.js.symbols ./build-interp/wwwroot/_framework/
 
+# Net9 and Net10 use Emscripten version 3.1.56, which emits legacy EH, see https://github.com/WebKit/JetStream/pull/188
+# FIXME: Update toolchain to Net11 once available, then remove this wasm-opt call.
 for wasmFile in $(find "./build-interp" -type f -name "*.wasm");
 do
     wasm-opt "$wasmFile" --translate-to-exnref --enable-bulk-memory --enable-exception-handling --enable-simd --enable-reference-types --enable-multivalue -o "$wasmFile"
@@ -41,6 +43,8 @@ printf '%s\n' 'import.meta.url ??= "";' | cat - ./build-aot/wwwroot/_framework/d
 echo "Copying symbol maps..." | tee -a "$BUILD_LOG"
 cp ./src/dotnet/obj/Release/net9.0/wasm/for-publish/dotnet.native.js.symbols ./build-aot/wwwroot/_framework/
 
+# Net9 and Net10 use Emscripten version 3.1.56, which emits legacy EH, see https://github.com/WebKit/JetStream/pull/188
+# FIXME: Update toolchain to Net11 once available, then remove this wasm-opt call.
 for wasmFile in $(find "./build-aot" -type f -name "*.wasm");
 do
     wasm-opt "$wasmFile" --translate-to-exnref --enable-bulk-memory --enable-exception-handling --enable-simd --enable-reference-types --enable-multivalue -o "$wasmFile"
