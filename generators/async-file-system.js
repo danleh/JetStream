@@ -38,7 +38,7 @@ const isLittleEndian = computeIsLittleEndian();
 async function *randomFileContents() {
     let counter = 1;
     while(true) {
-        const numBytes = ((counter * 1192.18851371) % 2056);
+        const numBytes = (((counter * 1192.18851371) | 0) % 2056);
         counter++;
         let result = new ArrayBuffer(numBytes);
         let view = new Uint8Array(result);
