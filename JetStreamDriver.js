@@ -753,7 +753,7 @@ class Benchmark {
         this.isAsync = !!plan.isAsync;
         this.allowUtf16 = !!plan.allowUtf16;
         this.scripts = null;
-        this.preloads = null;
+        this.preloads = [];
         this.shellPrefetchedResources = null;
         this.results = [];
         this._state = BenchmarkState.READY;
@@ -1073,7 +1073,6 @@ class Benchmark {
             }));
 
         if (this.plan.preload) {
-            this.preloads = [];
             for (const [name, resource] of Object.entries(this.plan.preload)) {
                 promises.push(this.loadBlob("preload", name, resource).then((blobData) => {
                     if (!globalThis.allIsGood)
@@ -1156,8 +1155,7 @@ class Benchmark {
         console.assert(this.scripts === null, "This initialization should be called only once.");
         this.scripts = this.plan.files.map(file => shellFileLoader.load(file));
 
-        console.assert(this.preloads === null, "This initialization should be called only once.");
-        this.preloads = [];
+        console.assert(this.preloads.length === 0, "This initialization should be called only once.");
         this.shellPrefetchedResources = Object.create(null);
         if (!this.plan.preload) {
             return;
