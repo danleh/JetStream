@@ -43,7 +43,7 @@ function *randomFileContents() {
         let result = new ArrayBuffer(numBytes);
         let view = new Uint8Array(result);
         for (let i = 0; i < numBytes; ++i)
-            view[i] = (i + counter) % 255;
+            view[i] = (i + counter) % 256;
         yield new DataView(result);
     }
 };
