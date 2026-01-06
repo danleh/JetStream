@@ -29,12 +29,12 @@ import LocalWebServer from "local-web-server";
 
 const ROOT_DIR = path.join(process.cwd(), "./");
 
-const optionDefinitions = [
+export const optionDefinitions = [
     { name: "port", type: Number, defaultValue: 8010, description: "Set the test-server port, The default value is 8010." },
     { name: "verbose", type: Boolean, defaultValue: false, description: "Log all requests set to the server." },
 ];
 
-export default async function serve({ port, verbose }) {
+export async function serve({ port, verbose }) {
     if (!port)
         throw new Error("Port is required");
 
