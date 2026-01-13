@@ -1252,7 +1252,7 @@ class Benchmark {
         for (let i = 0; i < this.results.length; i++) {
             const result = this.results[i];
             const cx = padding + i * xRatio;
-            const cy = height - padding - (result - minResult) * yRatio;
+            const cy = padding + (result - minResult) * yRatio;
             const title = `Iteration ${i + 1}: ${uiFriendlyDuration(result)}`;
             circlesSVG += `<circle cx="${cx}" cy="${cy}" r="${radius}"><title>${title}</title></circle>`;
         }
