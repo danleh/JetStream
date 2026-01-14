@@ -74,6 +74,7 @@ See `JetStreamDriver.js` and `utils/compress.mjs` for more details.
 
 Scores in JetStream are dimensionless floats, where a higher score is better.
 When scores are aggregated (e.g., multiple sub-scores for each workload, or to determine the total score of the full benchmark suite), we use the [geometric mean](https://en.wikipedia.org/wiki/Geometric_mean).
-This ensures that an x% improvement of any individual score has the same effect on the aggregated score, regardless of the absolute value of the individual score.
+The geometric mean ensures that a multiplicative improvement of any individual score has the same effect on the aggregated score, regardless of the absolute value of the individual score.
+For example, an improvement by 5% of the sub score of benchmark A has the same effect on the total score as an improvement by 5% of the sub score of benchmark B.
 
 See the [in-depth.html](https://webkit-jetstream-preview.netlify.app/in-depth.html) and `JetStreamDriver.js` for more details.
