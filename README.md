@@ -22,7 +22,7 @@ See [package.json](package.json) and [.github/workflows/test.yml](.github/workfl
 
 ### Shell Runner
 
-For the shell runner, see the available options by passing `--help` to `cli.js`. (Note that this requires `--` for JavaScriptCore and V8 to separate VM arguments from script arguments):
+For the shell runner, see the available options by passing `--help` to `cli.js`. (Note that this requires `--` for JavaScriptCore and V8 to separate VM arguments from script arguments.):
 
 ```
 $ v8 cli.js -- --help
@@ -31,20 +31,7 @@ JetStream Driver Help
 Options:
     --help                 Print this help message.
     --iteration-count      Set the default iteration count.
-    --worst-case-count     Set the default worst-case count.
-    --dump-json-results    Print summary json to the console.
-    --dump-test-list       Print the selected test list instead of running.
-    --ramification         Enable ramification support. See RAMification.py for more details.
-    --no-prefetch          Do not prefetch resources. Will add network overhead to measurements!
-    --group-details        Display detailed group items
-    --test                 Run a specific test or comma-separated list of tests.
-    --tag                  Run tests with a specific tag or comma-separated list of tags.
-    --start-automatically  Start the benchmark automatically.
-    --report               Report results to a server.
-    --start-delay          Delay before starting the benchmark.
-    --custom-pre-iteration-code Custom code to run before each iteration.
-    --custom-post-iteration-code Custom code to run after each iteration.
-    --force-gc             Force garbage collection before each benchmark, requires engine support.
+...
 
 Available tags:
    all
@@ -57,19 +44,36 @@ Available tests:
 
 ### Browser Runner
 
-The browser version also supports passing parameters as URL query parameters, e.g., [https://webkit-jetstream-preview.netlify.app/?test=8bitbench-wasm](https://webkit-jetstream-preview.netlify.app/?test=8bitbench-wasm) to run only a single workload.
+The browser version also supports passing parameters as URL query parameters, e.g., pass the `test` parameter (aliases are `tests` or `testList`) with a comma-separated list to run only specific workloads: [https://webkit-jetstream-preview.netlify.app/?test=8bitbench-wasm,web-ssr](https://webkit-jetstream-preview.netlify.app/?test=8bitbench-wasm,web-ssr).
 See [utils/params.js](utils/params.js) and [JetStreamDriver.js](JetStreamDriver.js) for more details.
 
-## Overview for Benchmark Developers
+## Technical Details
 
-TODO, bullet point list of most important files: `JetStreamDriver.js` which lists tests and their parameters, implements score calculation etc. Individual workloads are in subdirectories.
-Compression and decompression via `npm run compress`. Because of large JS and for some workloads large resources (e.g., ML model files). In the browser decompressed via built-in APIs, in shells via Wasm zlib polyfill.
-
+The main file of the benchmark harness is `JetStreamDriver.js`, which lists the individual workloads and their parameters, implements measurement and scoring, etc.
+The individual workloads are in subdirectories.
 
 ### Preloading and Compression
 
-TODO: briefly explain and document rationale behind preloading and compression of large artifacts
+The JetStream driver (both in the browser and shell runners) _preloads_ some large assets and source files.
+That is, it reads those files from disk or fetches them from the network before running the workloads.
+This is in order to exclude network latency and disk I/O from the benchmark measurements and reduce variance. Otherwise, OS scheduling or CPU frequency scaling may affect the measurement.
+
+Some workloads also utilize large assets (e.g., ML models, heavy JavaScript bundles in the order of 10s of MBs).
+In order to limit the repository size and network transfers, such large assets are stored as compressed .z files.
+Preloading handles the decompression of these assets (using `DecompressionStream` or a Wasm-based zlib polyfill) upfront so that decompression overhead does not affect the benchmark score.
+
+Both preloading and compression can be disabled, e.g., to inspect raw files or because it sometimes helps with debugging (e.g., proper URLs instead of Blobs for resources).
+
+- Compression: Run `npm run decompress` to decompress all .z files before running the benchmark.
+- No prefetching for shells: Pass the `--no-prefetch` flag, e.g., `jsc cli.js -- --no-prefetch`.
+- No prefetching in browsers: Append the query parameter `?prefetchResources=false` to the URL.
+
+See `JetStreamDriver.js` and `utils/compress.mjs` for more details.
 
 ### Score Calculation
 
-TODO, maybe simply refer to in-depth.html?
+Scores in JetStream are dimensionless floats, where a higher score is better.
+When scores are aggregated (e.g., multiple sub-scores for each workload, or to determine the total score of the full benchmark suite), we use the [geometric mean](https://en.wikipedia.org/wiki/Geometric_mean).
+This ensures that an x% improvement of any individual score has the same effect on the aggregated score, regardless of the absolute value of the individual score.
+
+See the [in-depth.html](https://webkit-jetstream-preview.netlify.app/in-depth.html) and `JetStreamDriver.js` for more details.

@@ -18,7 +18,7 @@
         "prepare": "node utils/version-check.mjs",
         "server": "npm run prepare --silent && node tests/server.mjs",
         "compress": "npm run prepare --silent && node utils/compress.mjs",
-        "decompress": "npm run prepare --silent && node utils/compress.mjs --decompress --keep ",
+        "decompress": "npm run prepare --silent && node utils/compress.mjs --decompress --keep",
         "lint:check": "npm run prepare --silent && eslint **/*.{js,mjs,jsx,ts,tsx}",
         "pretty:check": "npm run prepare --silent && prettier --check ./",
         "pretty:format": "npm run prepare --silent && prettier --write ./",
