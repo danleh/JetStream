@@ -1254,7 +1254,7 @@ class Benchmark {
             const result = scores[i];
             const cx = padding + i * xRatio;
             const cy = height - padding - (result - minResult) * yRatio;
-            const title = `Iteration ${i + 1}: ${uiFriendlyDuration(result)}`;
+            const title = `Iteration ${i + 1}: ${uiFriendlyScore(result)}`;
             circlesSVG += `<circle cx="${cx}" cy="${cy}" r="${radius}"><title>${title}</title></circle>`;
         }
         plotContainer.innerHTML = `<svg width="${width}px" height="${height}px">${circlesSVG}</svg>`;
