@@ -29,7 +29,7 @@
 
     <title>JetStream 3 In-Depth Analysis</title>
 
-    <link rel="stylesheet" href="ressources/JetStream.css">
+    <link rel="stylesheet" href="resources/JetStream.css">
 
 </head>
 <body class="overflow-scroll">
@@ -43,7 +43,7 @@
         <h2>In-Depth Analysis</h2>
 
         <p>
-        JetStream 3 combines together a variety of JavaScript and Web Assembly benchmarks, covering a variety of
+        JetStream 3 combines together a variety of JavaScript and WebAssembly benchmarks, covering a variety of
         advanced workloads and programming techniques, and reports a single score that
         balances them using a geometric mean.
         </p>
@@ -56,9 +56,11 @@
         </p>
 
         <p>
-        Each benchmark in JetStream 3 computes its own individual score. JetStream 3 weighs each
-        benchmark equally, taking the geometric mean over each individual benchmark's score to compute
-        the overall JetStream 3 score.
+        Each benchmark in JetStream 3 computes its own individual score.
+        Scores in JetStream are dimensionless floats, where a higher score is better.
+        JetStream weighs each benchmark equally, taking the <a href="https://en.wikipedia.org/wiki/Geometric_mean">geometric mean</a> over each individual benchmark's score to compute the overall JetStream 3 score.
+        The geometric mean ensures that a multiplicative improvement of any individual score has the same effect on the aggregated score, regardless of the absolute value of the individual score.
+        For example, an improvement by 5% of the sub score of benchmark A has the same effect on the total score as an improvement by 5% of the sub score of benchmark B.
         </p>
 
         <p>
@@ -70,7 +72,7 @@
         </p>
 
         <p>
-        For most of the JavaScript benchmarks in JetStream 3, individual scores
+        For most of the JavaScript and WebAssembly benchmarks in JetStream 3, individual scores
         equally weigh startup performance, worst case performance, and average case
         performance. These three metrics are crucial to running performant JavaScript
         in the browser. Fast startup times lead browsers to loading pages more quickly. Good
@@ -79,11 +81,10 @@
         </p>
 
         <p>
-        For JetStream 3's Web Assembly benchmarks, individual scores equally weigh startup time and
-        total execution time. An important component of JetStream 1 were the asm.js subset of benchmarks. With the release
-        of Web Assembly, the importance of asm.js has lessened since many users of asm.js are
-        now using Web Assembly. JetStream 3 has converted many of the asm.js benchmarks from
-        JetStream 1 into Web Assembly.
+        An important component of JetStream 1 were the asm.js subset of benchmarks. With the release
+        of WebAssembly, the importance of asm.js has lessened since many users of asm.js are
+        now using WebAssembly. JetStream 3 has converted many of the asm.js benchmarks from
+        JetStream 1 into WebAssembly.
         </p>
 
         <p>
@@ -106,14 +107,13 @@
         <p>
         JetStream 3 includes parts of these benchmark suites that came before it: <a href="https://webkit.org/perf/sunspider/sunspider.html">SunSpider</a>,
         <a href="https://developers.google.com/octane/">Octane 2</a>, <a href="https://browserbench.org/JetStream1.1/">JetStream 1</a>,
-        <a href="https://browserbench.org/ARES-6/">ARES-6</a>, and <a href="https://v8.github.io/web-tooling-benchmark/">Web Tooling Benchmark</a>.
-        JetStream 3 also includes new benchmarks inspired by <a href="https://krakenbenchmark.mozilla.org">Kraken</a>.
-        JetStream 3 also includes a new set of benchmarks that measure the performance of Web Assembly, Web Workers,
+        <a href="https://browserbench.org/ARES-6/">ARES-6</a>, <a href="https://v8.github.io/web-tooling-benchmark/">Web Tooling Benchmark</a>, and benchmarks inspired by <a href="https://krakenbenchmark.mozilla.org">Kraken</a>.
+        JetStream 3 also includes a new set of benchmarks that measure the performance of WebAssembly, Web Workers,
         Promises, async iteration, unicode regular expressions, and JavaScript parsing.
         </p>
 
         <p>
-        JetStream 3 runs the same benchmarks as JetStream 3, but updates the benchmark driver to
+        JetStream 3 includes several benchmarks from earlier JetStream versions, but updates the benchmark driver to
         improve score stability. This is achieved by pre-fetching network resources prior to running
         the benchmarks. This can reduce perturbations on the measurement of JavaScript execution
         time due to second order effects of pause times induced by network latency.
@@ -168,7 +168,7 @@
         <dt id="tsf-wasm">tsf-wasm</dt>
         <dd>
          Runs Filip Pizlo's &mdash; of the WebKit team &mdash; implementation of a <a href="http://www.filpizlo.com/tsf/"> Typed Stream Format </a>
-         in Web Assembly. The original code is compiled from C to Web Assembly using <a href="https://emscripten.org">Emscripten</a>.
+         in WebAssembly. The original code is compiled from C to WebAssembly using <a href="https://emscripten.org">Emscripten</a>.
          Source code: <a href="wasm/TSF">TSF</a>
         </dd>
 
@@ -179,7 +179,7 @@
 
         <dt id="argon2-wasm">argon2-wasm</dt>
         <dd>
-         Tests <a href="https://github.com/P-H-C/phc-winner-argon2">Argon2</a>, a password-hashing function (the winner of Password Hashing Competition), in Web Assembly. This is test is based on <a href="https://github.com/antelle/argon2-browser">argon2-browser</a> library. Source code: <a href="wasm/">ARGON2</a>.
+         Tests <a href="https://github.com/P-H-C/phc-winner-argon2">Argon2</a>, a password-hashing function (the winner of Password Hashing Competition), in WebAssembly. This is test is based on <a href="https://github.com/antelle/argon2-browser">argon2-browser</a> library. Source code: <a href="wasm/">ARGON2</a>.
         </dd>
 
         <dt id="tagcloud-SP">tagcloud-SP</dt>
@@ -246,8 +246,8 @@
         <dt id="richards-wasm">richards-wasm</dt>
         <dd>
          Martin Richard's <a href="http://www.cl.cam.ac.uk/~mr10/Bench.html">system language
-         benchmark</a> compiled to a hybrid of Web Assembly and JavaScript. It stresses how quickly
-         JavaScript can call into Web Assembly code.
+         benchmark</a> compiled to a hybrid of WebAssembly and JavaScript. It stresses how quickly
+         JavaScript can call into WebAssembly code.
          Source code: <a href="wasm/richards.c">richards.c</a>, <a href="wasm/richards.js">richards.js</a>
         </dd>
 
@@ -302,7 +302,7 @@
 
         <dt id="quicksort-wasm">quicksort-wasm</dt>
         <dd>
-         Quicksort benchmark, compiled to Web Assembly with <a href="https://emscripten.org">Emscripten</a>.
+         Quicksort benchmark, compiled to WebAssembly with <a href="https://emscripten.org">Emscripten</a>.
          The original C version of this benchmark was previously published in the LLVM test suite.
          Source code: <a href="wasm/quicksort.c">quicksort.c</a>, <a href="wasm/quicksort.js">quicksort.js</a>
         </dd>
@@ -418,8 +418,8 @@
 
         <dt id="HashSet-wasm">HashSet-wasm</dt>
         <dd>
-         A Web Assembly benchmark replaying a set of hash table operations performed in WebKit when loading
-         a web page. This benchmark was compiled from C++ to Web Assembly using <a href="https://emscripten.org">Emscripten</a>.
+         A WebAssembly benchmark replaying a set of hash table operations performed in WebKit when loading
+         a web page. This benchmark was compiled from C++ to WebAssembly using <a href="https://emscripten.org">Emscripten</a>.
          Source code: <a href="wasm/HashSet.cpp">HashSet.cpp</a>, <a href="wasm/HashSet.js">HashSet.js</a>
         </dd>
 
@@ -434,7 +434,7 @@
 
         <dt id="gcc-loops-wasm">gcc-loops-wasm</dt>
         <dd>
-         Example loops used to tune the GCC and LLVM vectorizers, compiled to Web Assembly with
+         Example loops used to tune the GCC and LLVM vectorizers, compiled to WebAssembly with
          <a href="https://emscripten.org">Emscripten</a>. The original C++ version of this benchmark was previously published in the LLVM test suite.
          Source code: <a href="wasm/gcc-loops.cpp">gcc-loops.cpp</a>, <a href="wasm/gcc-loops.js">gcc-loops.js</a>
         </dd>
