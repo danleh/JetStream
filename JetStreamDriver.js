@@ -1236,23 +1236,24 @@ class Benchmark {
         if (!plotContainer || !this.results || this.results.length === 0)
             return;
 
+        const scores = this.results.map(time => toScore(time));
         const scoreElement = document.getElementById(this.scoreIdentifier("Score"));
         const width = scoreElement.offsetWidth;
         const height = scoreElement.offsetHeight;
 
         const padding = 5;
-        const maxResult = Math.max(...this.results);
-        const minResult = Math.min(...this.results);
+        const maxResult = Math.max(...scores);
+        const minResult = Math.min(...scores);
 
-        const xRatio = (width - 2 * padding) / (this.results.length - 1 || 1);
+        const xRatio = (width - 2 * padding) / (scores.length - 1 || 1);
         const yRatio = (height - 2 * padding) / (maxResult - minResult || 1);
         const radius = Math.max(1.5, Math.min(2.5, 10 - (this.iterations / 10)));
 
         let circlesSVG = "";
-        for (let i = 0; i < this.results.length; i++) {
-            const result = this.results[i];
+        for (let i = 0; i < scores.length; i++) {
+            const result = scores[i];
             const cx = padding + i * xRatio;
-            const cy = padding + (result - minResult) * yRatio;
+            const cy = height - padding - (result - minResult) * yRatio;
             const title = `Iteration ${i + 1}: ${uiFriendlyDuration(result)}`;
             circlesSVG += `<circle cx="${cx}" cy="${cy}" r="${radius}"><title>${title}</title></circle>`;
         }
