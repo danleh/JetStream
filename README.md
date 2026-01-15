@@ -54,15 +54,21 @@ The individual workloads are in subdirectories.
 
 ### Preloading and Compression
 
-The JetStream driver (both in the browser and shell runners) _preloads_ some large assets and source files.
-That is, it reads those files from disk or fetches them from the network before running the workloads.
-This is in order to exclude network latency and disk I/O from the benchmark measurements and reduce variance. Otherwise, OS scheduling or CPU frequency scaling may affect the measurement.
+**Network prefetching (in the browser).**
+In order to avoid the CPU frequency spinning down between tests we prefetch all assets before any of the tests start in the browser.
+(In the CLI/shell runner we assume all assets are on disk.)
+Assets are saved in a blob URL so they can be cached on disk.
+This lowers the peak memory footprint of the benchmark to a sustainable level.
 
-Some workloads also utilize large assets (e.g., ML models, heavy JavaScript bundles in the order of 10s of MBs).
-In order to limit the repository size and network transfers, such large assets are stored as compressed .z files.
+**Large asset preloading.**
+The JetStream driver (both in the browser and shell runners) preloads some large assets and source files.
+This avoids extensive disk I/O during the measurement window of the workloads.
+
+**Compression.**
+In order to limit the repository size and network transfers, large assets (e.g., ML models, heavy JavaScript bundles in the order of 10s of MBs) are stored as compressed .z files on disk.
 Preloading handles the decompression of these assets (using `DecompressionStream` or a Wasm-based zlib polyfill) upfront so that decompression overhead does not affect the benchmark score.
 
-Both preloading and compression can be disabled, e.g., to inspect raw files or because it sometimes helps with debugging (e.g., proper URLs instead of Blobs for resources).
+Preloading, prefetching, and compression can be disabled, e.g., to inspect raw files or because it sometimes helps with debugging (e.g., to get proper URLs instead of blob URLs for resources).
 
 - Compression: Run `npm run decompress` to decompress all .z files before running the benchmark.
 - No prefetching for shells: Pass the `--no-prefetch` flag, e.g., `jsc cli.js -- --no-prefetch`.
