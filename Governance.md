@@ -2,7 +2,7 @@
 
 JetStream uses multi-stakeholder governance. This will allow us to share work, and build a collaborative understanding of performance on the web in order to drive resourcing towards appropriate areas. This also provides a structure that can endure to provide maintenance and adapt to the future web.
 
-An eligible “browser project” is a core end-to-end web browser engine with an integrated JavaScript engine which distributes implementations widely. The project may delegate decision making within JetStream to multiple representatives (for example, to review code commits or to provide consensus for major changes). The participating browser projects at this time are Blink/V8, Gecko/SpiderMonkey, and WebKit/JavaScriptCore.
+An eligible “browser project” is a core end-to-end web browser engine with an integrated JavaScript and WebAssembly engine which distributes implementations widely. The project may delegate decision making within JetStream to multiple representatives (for example, to review code commits or to provide consensus for major changes). The participating browser projects at this time are Blink/V8, Gecko/SpiderMonkey, and WebKit/JavaScriptCore.
 
 The intent is that the working team should be able to move quickly for most changes, with a higher level of process and consensus expected based on the impact of the change.
 
