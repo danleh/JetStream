@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 # Expects to have .NET SDK 9.0.3xx with `wasm-tools` installed.
 # Installation options:
@@ -25,19 +25,16 @@ for version in "interp" "aot"; do
     echo "Building $version..." | tee -a "$BUILD_LOG"
 
     DOTNET_ARGS=""
-    if [ "$version" = "aot" ]; then
-        DOTNET_ARGS="-p:RunAOTCompilation=true"
+    if [ "$version" == "aot" ]; then
+        DOTNET_ARGS+=" -p:RunAOTCompilation=true"
     fi
     # Use deterministic builds and don't embed build directory paths to avoid spurious binary updates.
     dotnet publish -o ./build-$version ./src/dotnet/dotnet.csproj -p:Deterministic=true -p:DeterministicSourcePaths=true $DOTNET_ARGS
 
-    # Workaround for `jsc` CLI
-    printf '%s\n' 'import.meta.url ??= "";' | cat - ./src/dotnet/bin/Release/net9.0/wwwroot/_framework/dotnet.js > temp.js
     # Silence warning on ArrayBuffer instantiation, which we intentionally use
     # to keep the workload consistent between browsers and shells (the latter
     # don't always support streaming compilation.)
-    perl -pi -e "s|\Q&&w('WebAssembly resource does not have the expected content type \"application/wasm\", so falling back to slower ArrayBuffer instantiation.')\E||g" temp.js
-    mv temp.js ./build-$version/wwwroot/_framework/dotnet.js
+    perl -pi -e "s|\Q&&w('WebAssembly resource does not have the expected content type \"application/wasm\", so falling back to slower ArrayBuffer instantiation.')\E||g" ./build-$version/wwwroot/_framework/dotnet.js
 
     echo "Copying symbol maps..." | tee -a "$BUILD_LOG"
     cp ./src/dotnet/obj/Release/net9.0/wasm/for-publish/dotnet.native.js.symbols ./build-$version/wwwroot/_framework/
