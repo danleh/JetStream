@@ -56,25 +56,6 @@ function displayCategoryScores() {
     document.body.classList.add("details");
 }
 
-function getIterationCount(plan) {
-    if (plan.name in JetStreamParams.testIterationCountMap)
-        return JetStreamParams.testIterationCountMap[plan.name];
-    if (JetStreamParams.testIterationCount)
-        return JetStreamParams.testIterationCount;
-    if (plan.iterations)
-        return plan.iterations;
-    return defaultIterationCount;
-}
-
-function getWorstCaseCount(plan) {
-    if (plan.name in JetStreamParams.testWorstCaseCountMap)
-        return JetStreamParams.testWorstCaseCountMap[plan.name];
-    if (JetStreamParams.testWorstCaseCount)
-        return JetStreamParams.testWorstCaseCount;
-    if (plan.worstCaseCount !== undefined)
-        return plan.worstCaseCount;
-    return defaultWorstCaseCount;
-}
 
 if (isInBrowser) {
     document.onkeydown = (keyboardEvent) => {
@@ -298,7 +279,7 @@ class BrowserFileLoader {
             if (type == "preload") {
                 if (this.failedPreloads && this.failedPreloads[blobData.prop]) {
                     this.failedPreloads[blobData.prop] = false;
-                    this.preloads.push({ name: blobData.prop, resource: blobData.resource, blobURLOrPath: blobData.blobURL });
+                    this._preloadBlobData.push({ name: blobData.prop, resource: blobData.resource, blobURLOrPath: blobData.blobURL });
                     counter.failedPreloadResources--;
                 }
             }
@@ -311,7 +292,7 @@ class BrowserFileLoader {
             if (!globalThis.allIsGood)
                 return;
             if (blobData.type == "preload")
-                this.preloads.push({ name: blobData.prop, resource: blobData.resource, blobURLOrPath: blobData.blobURL });
+                this._preloadBlobData.push({ name: blobData.prop, resource: blobData.resource, blobURLOrPath: blobData.blobURL });
             this.updateCounter();
         });
 
@@ -347,7 +328,7 @@ class Driver {
         this.errors = [];
         // Make benchmark list unique and sort it.
         this.benchmarks = Array.from(new Set(benchmarks));
-        this.benchmarks.sort((a, b) => a.plan.name.toLowerCase() < b.plan.name.toLowerCase() ? 1 : -1);
+        this.benchmarks.sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? 1 : -1);
         console.assert(this.benchmarks.length, "No benchmarks selected");
         this.counter = { };
         this.counter.loadedResources = 0;
@@ -521,7 +502,7 @@ class Driver {
         if (isInBrowser)
             window.addEventListener("error", (e) => this.pushError("driver startup", e.error));
         await this.prefetchResources();
-        this.benchmarks.sort((a, b) => a.plan.name.toLowerCase() < b.plan.name.toLowerCase() ? 1 : -1);
+        this.benchmarks.sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? 1 : -1);
         if (isInBrowser)
             this.prepareBrowserUI();
         this.isReady = true;
@@ -878,21 +859,45 @@ class BrowserScripts extends Scripts {
 
 
 class Benchmark {
-    constructor(plan)
-    {
-        this.plan = plan;
-        this.tags = this.processTags(plan.tags)
-        this.iterations = getIterationCount(plan);
-        this.isAsync = !!plan.isAsync;
-        this.allowUtf16 = !!plan.allowUtf16;
-        this.scripts = null;
-        this.preloads = [];
-        this.shellPrefetchedResources = null;
-        this.results = [];
+    constructor({
+            name, 
+            files,
+            preload = {},
+            tags, 
+            iterations,
+            deterministicRandom = false,
+            exposeBrowserTest = false,
+            allowUtf16 = false,
+            args = {} }) {
         this._state = BenchmarkState.READY;
+        this.results = [];
+
+        this.name = name
+        this.tags = this._processTags(tags)
+        this._arguments = args;
+        
+        this.iterations = this._processIterationCount(iterations);
+        this._deterministicRandom = deterministicRandom;
+        this._exposeBrowserTest = exposeBrowserTest;
+        this.allowUtf16 = !!allowUtf16;
+
+        // Resource handling:
+        this._scripts = null;
+        this._files = files;
+        this._preloadEntries = Object.entries(preload);
+        this._preloadBlobData = [];
+        this._shellPrefetchedResources = null;
     }
 
-    processTags(rawTags) {
+    // Use getter so it can be overridden in subclasses (GroupedBenchmark).
+    get files() {
+        return this._files;
+    }
+    get preloadEntries() { 
+        return this._preloadEntries;
+    }
+
+    _processTags(rawTags) {
         const tags = new Set(rawTags.map(each => each.toLowerCase()));
         if (tags.size != rawTags.length)
             throw new Error(`${this.name} got duplicate tags: ${rawTags.join()}`);
@@ -902,8 +907,25 @@ class Benchmark {
         return tags;
     }
 
-    get name() { return this.plan.name; }
-    get files() { return this.plan.files; }
+    _processIterationCount(iterations) {
+        if (this.name in JetStreamParams.testIterationCountMap)
+            return JetStreamParams.testIterationCountMap[this.name];
+        if (JetStreamParams.testIterationCount)
+            return JetStreamParams.testIterationCount;
+        if (iterations)
+            return iterations;
+        return defaultIterationCount;
+    }
+
+    _processWorstCaseCount(worstCaseCount) {
+        if (this.name in JetStreamParams.testWorstCaseCountMap)
+            return JetStreamParams.testWorstCaseCountMap[this.name];
+        if (JetStreamParams.testWorstCaseCount)
+            return JetStreamParams.testWorstCaseCount;
+        if (worstCaseCount !== undefined)
+            return worstCaseCount;
+        return defaultWorstCaseCount;
+    }
 
     get isDone() {
         return this._state == BenchmarkState.DONE || this._state == BenchmarkState.ERROR;
@@ -916,7 +938,7 @@ class Benchmark {
 
     get benchmarkArguments() {
         return {
-            ...this.plan.arguments,
+            ...this._arguments,
             iterationCount: this.iterations,
         };
     }
@@ -993,7 +1015,7 @@ class Benchmark {
 
     get preIterationCode() {
         let code = this.prepareForNextIterationCode ;
-        if (this.plan.deterministicRandom)
+        if (this._deterministicRandom)
             code += `Math.random.__resetSeed();`;
 
         if (JetStreamParams.customPreIterationCode)
@@ -1054,15 +1076,17 @@ class Benchmark {
             globalThis?.gc();
         }
 
-        const scripts = isInBrowser ? new BrowserScripts(this.preloads) : new ShellScripts(this.preloads);
+        const scripts = isInBrowser ? 
+                new BrowserScripts(this._preloadBlobData) :
+                new ShellScripts(this._preloadBlobData);
 
-        if (!!this.plan.deterministicRandom)
+        if (this._deterministicRandom)
             scripts.addDeterministicRandom()
-        if (!!this.plan.exposeBrowserTest)
+        if (this._exposeBrowserTest)
             scripts.addBrowserTest();
 
-        if (this.shellPrefetchedResources) {
-            scripts.addPrefetchedResources(this.shellPrefetchedResources);
+        if (this._shellPrefetchedResources) {
+            scripts.addPrefetchedResources(this._shellPrefetchedResources);
         }
 
         const prerunCode = this.prerunCode;
@@ -1070,12 +1094,12 @@ class Benchmark {
             scripts.add(prerunCode);
 
         if (!isInBrowser) {
-            console.assert(this.scripts && this.scripts.length === this.plan.files.length);
-            for (const text of this.scripts)
+            console.assert(this._scripts && this._scripts.length === this.files.length);
+            for (const text of this._scripts)
                 scripts.add(text);
         } else {
             const cache = browserFileLoader.blobDataCache;
-            for (const file of this.plan.files) {
+            for (const file of this.files) {
                 scripts.addWithURL(cache[file].blobURL);
             }
         }
@@ -1135,7 +1159,7 @@ class Benchmark {
     prefetchResourcesForBrowser(counter) {
         console.assert(isInBrowser);
 
-        const promises = this.plan.files.map((file) => browserFileLoader.loadBlob("file", null, file).then((blobData) => {
+        const promises = this.files.map((file) => browserFileLoader.loadBlob("file", null, file).then((blobData) => {
                 if (!globalThis.allIsGood)
                     return;
                 this.updateCounter();
@@ -1143,21 +1167,19 @@ class Benchmark {
                 // We'll try again later in retryPrefetchResourceForBrowser(). Don't throw an error.
             }));
 
-        if (this.plan.preload) {
-            for (const [name, resource] of Object.entries(this.plan.preload)) {
-                promises.push(browserFileLoader.loadBlob("preload", name, resource).then((blobData) => {
-                    if (!globalThis.allIsGood)
-                        return;
-                    this.preloads.push({ name: blobData.prop, resource: blobData.resource, blobURLOrPath: blobData.blobURL });
-                    this.updateCounter();
-                }).catch((error) => {
-                    // We'll try again later in retryPrefetchResourceForBrowser(). Don't throw an error.
-                    if (!this.failedPreloads)
-                        this.failedPreloads = { };
-                    this.failedPreloads[name] = true;
-                    counter.failedPreloadResources++;
-                }));
-            }
+        for (const [name, resource] of this.preloadEntries) {
+            promises.push(browserFileLoader.loadBlob("preload", name, resource).then((blobData) => {
+                if (!globalThis.allIsGood)
+                    return;
+                this._preloadBlobData.push({ name: blobData.prop, resource: blobData.resource, blobURLOrPath: blobData.blobURL });
+                this.updateCounter();
+            }).catch((error) => {
+                // We'll try again later in retryPrefetchResourceForBrowser(). Don't throw an error.
+                if (!this.failedPreloads)
+                    this.failedPreloads = { };
+                this.failedPreloads[name] = true;
+                counter.failedPreloadResources++;
+            }));
         }
 
         JetStream.counter.totalResources += promises.length;
@@ -1168,19 +1190,17 @@ class Benchmark {
         // FIXME: Move to BrowserFileLoader.
         console.assert(isInBrowser);
 
-        for (const resource of this.plan.files) {
+        for (const resource of this.files) {
             const allDone = await browserFileLoader.retryPrefetchResource("file", null, resource);
             
             if (allDone)
                 return true; // All resources loaded, nothing more to do.
         }
 
-        if (this.plan.preload) {
-            for (const [name, resource] of Object.entries(this.plan.preload)) {
-                const allDone = await browserFileLoader.retryPrefetchResource("preload", name, resource);
-                if (allDone)
-                    return true; // All resources loaded, nothing more to do.
-            }
+        for (const [name, resource] of this.preloadEntries) {
+            const allDone = await browserFileLoader.retryPrefetchResource("preload", name, resource);
+            if (allDone)
+                return true; // All resources loaded, nothing more to do.
         }
         return !counter.failedPreloadResources && counter.loadedResources == counter.totalResources;
     }
@@ -1189,15 +1209,12 @@ class Benchmark {
         // FIXME: move to ShellFileLoader.
         console.assert(!isInBrowser);
 
-        console.assert(this.scripts === null, "This initialization should be called only once.");
-        this.scripts = this.plan.files.map(file => shellFileLoader.load(file));
+        console.assert(this._scripts === null, "This initialization should be called only once.");
+        this._scripts = this.files.map(file => shellFileLoader.load(file));
 
-        console.assert(this.preloads.length === 0, "This initialization should be called only once.");
-        this.shellPrefetchedResources = Object.create(null);
-        if (!this.plan.preload) {
-            return;
-        }
-        for (let [name, resource] of Object.entries(this.plan.preload)) {
+        console.assert(this._preloadBlobData.length === 0, "This initialization should be called only once.");
+        this._shellPrefetchedResources = Object.create(null);
+        for (let [name, resource] of this.preloadEntries) {
             const compressed = isCompressed(resource);
             if (compressed && !JetStreamParams.prefetchResources) {
                 resource = uncompressedName(resource);
@@ -1208,10 +1225,10 @@ class Benchmark {
                 if (compressed) {
                     bytes = zlib.decompress(bytes);
                 }
-                this.shellPrefetchedResources[resource] = bytes;
+                this._shellPrefetchedResources[resource] = bytes;
             }
 
-            this.preloads.push({ name, resource, blobURLOrPath: resource });
+            this._preloadBlobData.push({ name, resource, blobURLOrPath: resource });
         }
     }
 
@@ -1377,10 +1394,11 @@ class GroupedBenchmark extends Benchmark {
     }
 
     get files() {
-        let files = [];
-        for (const benchmark of this.benchmarks)
-            files = files.concat(benchmark.files);
-        return files;
+        return this.benchmarks.flatMap(benchmark => benchmark.files)
+    }
+
+    get preloadEntries() {
+        return this.benchmarks.flatMap(benchmark => benchmark.preloadEntries)
     }
 
     async run() {
@@ -1454,10 +1472,10 @@ class GroupedBenchmark extends Benchmark {
 };
 
 class DefaultBenchmark extends Benchmark {
-    constructor(...args) {
-        super(...args);
+    constructor({worstCaseCount, ...args}) {
+        super(args);
 
-        this.worstCaseCount = getWorstCaseCount(this.plan);
+        this.worstCaseCount = this._processWorstCaseCount(worstCaseCount);
         this.firstIterationTime = null;
         this.firstIterationScore = null;
         this.worstTime = null;
@@ -1638,8 +1656,8 @@ class WasmEMCCBenchmark extends AsyncBenchmark {
 };
 
 class WSLBenchmark extends Benchmark {
-    constructor(...args) {
-        super(...args);
+    constructor(plan) {
+        super(plan);
 
         this.stdlibTime = null;
         this.stdlibScore = null;
@@ -1701,10 +1719,9 @@ class WSLBenchmark extends Benchmark {
     }
 };
 
-class WasmLegacyBenchmark extends Benchmark {
-    constructor(...args) {
-        super(...args);
-
+class AsyncWasmLegacyBenchmark extends Benchmark {
+    constructor(plan) {
+        super(plan);
         this.startupTime = null;
         this.startupScore = null;
         this.runTime = null;
@@ -1807,19 +1824,15 @@ class WasmLegacyBenchmark extends Benchmark {
 
         str += "};\n";
         let preloadCount = 0;
-        for (const [name, resource] of Object.entries(this.plan.preload)) {
+        for (const [name, resource] of this.preloadEntries) {
             preloadCount++;
             str += `JetStream.loadBlob(${JSON.stringify(name)}, "${resource}", () => {\n`;
         }
-        if (this.plan.async) {
-            str += `doRun().catch((e) => {
-                console.log("error running wasm:", e);
-                console.log(e.stack)
-                throw e;
-            });`;
-        } else {
-            str += `doRun();`
-        }
+        str += `doRun().catch((e) => {
+            console.log("error running wasm:", e);
+            console.log(e.stack)
+            throw e;
+        });`;
         for (let i = 0; i < preloadCount; ++i) {
             str += `})`;
         }
@@ -2612,7 +2625,7 @@ let BENCHMARKS = [
         allowUtf16: true,
         tags: ["Wasm", "transformersjs"],
     }),
-    new WasmLegacyBenchmark({
+    new AsyncWasmLegacyBenchmark({
         name: "tfjs-wasm",
         files: [
             "./wasm/tfjs-model-helpers.js",
@@ -2628,13 +2641,12 @@ let BENCHMARKS = [
         preload: {
             tfjsBackendWasmBlob: "./wasm/tfjs-backend-wasm.wasm",
         },
-        async: true,
         deterministicRandom: true,
         exposeBrowserTest: true,
         allowUtf16: true,
         tags: ["Wasm"],
     }),
-    new WasmLegacyBenchmark({
+    new AsyncWasmLegacyBenchmark({
         name: "tfjs-wasm-simd",
         files: [
             "./wasm/tfjs-model-helpers.js",
@@ -2650,7 +2662,6 @@ let BENCHMARKS = [
         preload: {
             tfjsBackendWasmSimdBlob: "./wasm/tfjs-backend-wasm-simd.wasm",
         },
-        async: true,
         deterministicRandom: true,
         exposeBrowserTest: true,
         allowUtf16: true,
@@ -2680,7 +2691,7 @@ let BENCHMARKS = [
         preload: {
             BUNDLE: "./babylonjs/dist/bundle.es5.min.js",
         },
-        arguments: {
+        args: {
             expectedCacheCommentCount: 23988,
         },
         tags: ["startup",  "js", "class", "es5", "babylonjs"],
@@ -2695,7 +2706,7 @@ let BENCHMARKS = [
         preload: {
             BUNDLE: "./babylonjs/dist/bundle.es6.min.js",
         },
-        arguments: {
+        args: {
             expectedCacheCommentCount: 21222,
         },
         tags: ["Default",  "js", "startup", "class", "es6", "babylonjs"],
