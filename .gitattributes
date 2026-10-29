@@ -1,0 +1,20 @@
+# Files that build scripts write. GitHub collapses them in pull request
+# diffs and leaves them out of the language statistics; git itself
+# treats them like any other file.
+
+# Wasm workloads: everything their build.sh writes. The build.log next
+# to each of these directories stays visible, since it records the
+# toolchain and source versions.
+workloads/*-wasm/build/** linguist-generated=true
+workloads/Dart/build/** linguist-generated=true
+workloads/dotnet/build-aot/** linguist-generated=true
+workloads/dotnet/build-interp/** linguist-generated=true
+workloads/transformersjs/build/** linguist-generated=true
+
+# JavaScript workloads: webpack output of "npm run build". Their build/
+# directories hold the hand-written build scripts.
+workloads/*/dist/** linguist-generated=true
+
+# typescript-lib: the project sources that build/import-src-project.mjs
+# writes. The README stays visible.
+workloads/typescript-lib/src/gen/*/** linguist-generated=true
